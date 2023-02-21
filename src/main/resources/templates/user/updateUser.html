@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>无标题文档</title>
+  <link th:href="@{../css/style.css}" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" language="JavaScript" th:src="@{../js/jquery.js}"></script>
+</head>
+
+<body>
+
+<div class="place">
+  <span>位置：</span>
+  <ul class="placeul">
+    <li><a th:href="@{/goto?url=index}">首页</a></li>
+    <li><a th:href="@{/user/query}">用户管理</a></li>
+    <li><a href="#">添加用户</a></li>
+  </ul>
+</div>
+
+<div class="formbody">
+
+  <div class="formtitle"><span>基本信息</span></div>
+
+  <form th:action="@{/user/saveOrUpdate}" method="post" onsubmit="return checkForm()">
+    <ul class="forminfo">
+      <input type="hidden" id="userId" name="user.userId" th:value="${user.userId}"/>
+      <li><label>账号</label>
+        <input id="username" name="user.userName" type="text" class="dfinput" th:value="${user.userName}" onblur="checkUserName()"/>
+        <i id="usernameTip"></i>
+      </li>
+      <li><label>姓名</label>
+        <input id="realname" name="user.realName" type="text" class="dfinput" th:value="${user.realName}" onblur="checkRealName()"/>
+        <i id="realnameTip"></i>
+      </li>
+      <li><label>密码</label>
+        <input id="password" name="user.password" type="text" class="dfinput" th:value="${user.password}" onblur="checkPassword()"/>
+        <i id="passwordTip"></i>
+      </li>
+      <li><label>邮箱</label>
+        <input id="email" name="user.email" type="text" class="dfinput" th:value="${user.email}" onblur="checkEmail()"/>
+        <i id="emailTip"></i>
+      </li>
+      <li><label>手机号</label>
+        <input id="phone" name="user.phone" type="text" class="dfinput" th:value="${user.phone}" onblur="checkPhone()"/>
+        <i id="phoneTip"></i>
+      </li>
+      <li>
+        <label>角色</label>
+        <div style="height: 32px;line-height: 32px;">
+          <input th:each="role:${roles}" name="roleIds" type="checkbox" th:value="${role.roleId}" th:text="${role.roleName}+' '">
+        </div>
+      </li>
+      <li><label>&nbsp;</label><input name="" type="submit" class="btn" value="确认保存"/></li>
+    </ul>
+  </form>
+
+
+</div>
+<script type="text/javascript" th:inline="javascript">
+  function checkUserName(){
+    var reg = /^\w{3,10}$/
+    var username = $("#username").val();
+    if(reg.test(username)){
+      $.get("/user/checkUserName",{userName:username},function (msg){
+        if (msg == "1"){
+          $("#usernameTip").html("<font color='green'>账号可用</font>");
+        }else {
+          $("#usernameTip").html("<font color='red'>账号存在，请重新输入</font>");
+        }
+      })
+      if ($("#usernameTip").text() == "账号可用"){
+        return true;
+      }else {
+        return false;
+      }
+    }else {
+      $("#usernameTip").html("<font color='red'>账号长度为3-10位，由数字或字母组成</font>");
+      return false;
+    }
+  }
+  function checkRealName(){
+    var reg1 = /^[^\x00-\xff]{2,20}$/
+    var reg2 = /^[A-Z][a-zA-Z]{1,19}$/
+    var realname = $("#realname").val();
+    if(reg1.test(realname) || reg2.test(realname)){
+      $("#realnameTip").html("<font color='green'>姓名无误</font>");
+      return true;
+    }else {
+      $("#realnameTip").html("<font color='red'>姓名格式有误</font><span style='color: red;margin-left: 70px'>（姓名为中文或英文，名字长度大于1小于20字符，英文名字首字母大写）</span>");
+      return false
+    }
+    return false
+  }
+  function checkPassword() {
+    var reg = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{6,20}$/
+    var password = $("#password").val();
+    if(reg.test(password)){
+      $("#passwordTip").html("<font color='green'>密码无误</font>");
+      return true;
+    }else {
+      $("#passwordTip").html("<font color='red'>密码必须为英文大小写和数字的组合，长度在6-20个字符之间</font>");
+      return false;
+    }
+    return false
+  }
+  function checkEmail() {
+    var reg = /^\w{3,}(\.\w{2,})*@[0-9A-Za-z]+(\.[a-zA-Z]{2,3}){1,2}$/
+    var email = $("#email").val();
+    if(reg.test(email)){
+      $("#emailTip").html("<font color='green'>邮箱无误</font>");
+      return true;
+    }else {
+      $("#emailTip").html("<font color='red'>邮箱格式有误，请输入正确的邮箱</font>");
+      return false;
+    }
+    return false
+  }
+  function checkPhone() {
+    var reg = /^1[3456789]\d{9}$/
+    var phone = $("#phone").val();
+    if(reg.test(phone)){
+      $("#phoneTip").html("<font color='green'>手机号无误</font>");
+      return true;
+    }else {
+      $("#phoneTip").html("<font color='red'>手机号格式有误，请输入正确的手机号</font>");
+      return false;
+    }
+    return false
+  }
+  function checkForm() {
+    var f1 = checkUserName()
+    var f2 = checkRealName()
+    var f3 = checkPassword()
+    var f4 = checkEmail()
+    var f5 = checkPhone()
+    if (!(f1&&f2&&f3&&f4&f5)){
+      alert("当前输入内容可能不符合创建账号规则，请检查无误后保存！")
+      return false;
+    }
+  }
+</script>
+
+
+</body>
+</html>
